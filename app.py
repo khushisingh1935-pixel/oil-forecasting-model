@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from PIL import Image
 
 # PAGE CONFIG
 st.set_page_config(
-    page_title="Oil Forecast Dashboard",
+    page_title="Global Oil Forecast Dashboard",
     layout="wide"
 )
 
@@ -13,36 +14,42 @@ st.set_page_config(
 st.title("Global Oil Production Forecasting Dashboard")
 
 st.markdown("""
-Machine Learning based forecasting system for
-global oil production analysis and future prediction.
+Machine Learning based forecasting system for global oil production analysis and future prediction.
 """)
 
-# LOAD FORECAST CSV
+# LOAD DATA
 future_df = pd.read_csv(
     "future_oil_forecast_2026_2031.csv"
+)
+
+future_df['date'] = pd.to_datetime(
+    future_df['date']
 )
 
 # METRICS
 col1, col2, col3 = st.columns(3)
 
-col1.metric(
-    "Forecast Years",
-    "2026-2031"
-)
+with col1:
+    st.metric(
+        "Forecast Period",
+        "2026-2031"
+    )
 
-col2.metric(
-    "Total Forecast Months",
-    len(future_df)
-)
+with col2:
+    st.metric(
+        "Forecast Months",
+        len(future_df)
+    )
 
-col3.metric(
-    "Model",
-    "XGBoost"
-)
+with col3:
+    st.metric(
+        "Model",
+        "XGBoost"
+    )
 
 # TABS
 tab1, tab2, tab3, tab4 = st.tabs([
-    "Forecast Data",
+    "Forecast",
     "Actual vs Predicted",
     "Feature Importance",
     "Residual Analysis"
@@ -51,11 +58,13 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 1
 with tab1:
 
-    st.subheader("Forecast Dataset")
+    st.subheader(
+        "Future Oil Production Forecast"
+    )
 
-    st.dataframe(future_df)
-
-    fig, ax = plt.subplots(figsize=(12,6))
+    fig, ax = plt.subplots(
+        figsize=(12, 5)
+    )
 
     ax.plot(
         future_df['date'],
@@ -67,13 +76,32 @@ with tab1:
         "Forecasted Oil Production (2026-2031)"
     )
 
-    ax.set_xlabel("Date")
+    ax.set_xlabel("Year")
 
     ax.set_ylabel("Production")
 
     ax.grid(True)
 
+    ax.xaxis.set_major_locator(
+        mdates.YearLocator()
+    )
+
+    ax.xaxis.set_major_formatter(
+        mdates.DateFormatter('%Y')
+    )
+
+    plt.xticks(rotation=45)
+
     st.pyplot(fig)
+
+    st.subheader(
+        "Forecast Dataset"
+    )
+
+    st.dataframe(
+        future_df,
+        use_container_width=True
+    )
 
 # TAB 2
 with tab2:
@@ -82,12 +110,8 @@ with tab2:
         "Actual vs Predicted Production"
     )
 
-    image1 = Image.open(
-        "01_actual_vs_predicted.png"
-    )
-
     st.image(
-        image1,
+        "01_actual_vs_predicted.png",
         use_container_width=True
     )
 
@@ -98,12 +122,8 @@ with tab3:
         "Feature Importance"
     )
 
-    image2 = Image.open(
-        "02_feature_importance.png"
-    )
-
     st.image(
-        image2,
+        "02_feature_importance.png",
         use_container_width=True
     )
 
@@ -114,21 +134,15 @@ with tab4:
         "Residual Analysis"
     )
 
-    image3 = Image.open(
-        "03_residual_analysis.png"
-    )
-
     st.image(
-        image3,
+        "03_residual_analysis.png",
         use_container_width=True
     )
 
 # DOWNLOAD BUTTON
-csv = future_df.to_csv(index=False)
-
 st.download_button(
     label="Download Forecast CSV",
-    data=csv,
-    file_name="future_forecast.csv",
+    data=future_df.to_csv(index=False),
+    file_name="future_oil_forecast_2026_2031.csv",
     mime="text/csv"
-) 
+)
